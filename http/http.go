@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"io"
 	"net"
+	"strconv"
 
 	"lwc.com/servergo/logger"
 )
@@ -48,4 +50,30 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 	}
 
     l.Info("All Header", "header", ahs)
+
+    cl, ok := ahs["Content-Length"]
+    if !ok {
+        l.Info("Request has no body")
+        return
+    }
+
+    clInt, err := strconv.Atoi(cl)
+    if err != nil {
+        l.Error("Content length to integer has error", "err", err.Error())
+        return
+    }
+
+    bodySlice := make([]byte, clInt)
+    _, err = io.ReadFull(bufIoReader, bodySlice)
+    if err != nil {
+        l.Error("Body read faild", "err", err.Error())
+        return
+    }
+
+    bodyStr, err := readBody(bodySlice)
+    if err != nil {
+        l.Error("Body read error", "err", err.Error())
+        return
+    }
+    l.Info("Body", "body", bodyStr)
 }
