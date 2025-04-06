@@ -13,6 +13,7 @@ import (
 type StartLine struct {
 	Method      string
 	Url         string
+    MPlusUrl     string
 	HttpVersion string
 }
 
@@ -28,10 +29,6 @@ func readStartLine(ctx context.Context, sls string) (*StartLine, error) {
 	method := slsSplitted[0]
 	url := slsSplitted[1]
 	httpVersion := slsSplitted[2]
-
-	if !slices.Contains(SUPPORTED_METHODS, method) {
-		return nil, errors.New(fmt.Sprintf("Start Line: invalid method -> %s", method))
-	}
 
 	if !strings.HasPrefix(url, "/") {
 		return nil, errors.New(fmt.Sprintf("Start Line: invalid url -> %s", url))
@@ -55,6 +52,7 @@ func readStartLine(ctx context.Context, sls string) (*StartLine, error) {
 	return &StartLine{
         Method: method,
         Url: url,
+        MPlusUrl: method + url,
         HttpVersion: version,
     }, nil
 }

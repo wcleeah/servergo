@@ -2,21 +2,25 @@ package http
 
 import (
 	"errors"
-	"fmt"
 	"unicode/utf8"
 )
 
-func readBody(bs []byte) (string, error) {
+type Body struct {
+    Raw []byte
+    Text string
+}
+
+func readBody(bs []byte) (*Body, error) {
     valid := utf8.Valid(bs)
     if !valid {
-        return "", errors.New("Invalid byte slice")
+        return nil, errors.New("Invalid byte slice")
     }
-    str := string(bs)
-    fmt.Printf("str: %s\n", str)
-    fmt.Printf("len str: %d\n", len(str))
-    if str == "" {
-        return "", errors.New("Empty byte slice")
+    if len(bs) == 0 {
+        return nil, errors.New("Empty byte slice")
     }
 
-    return str, nil
+    return &Body{
+        Raw: bs,
+        Text: string(bs),
+    }, nil
 }

@@ -6,7 +6,7 @@ import (
 )
 
 func TestHappy(t *testing.T) {
-    startLine := "GET /123/123/123 HTTP/1.1"
+    startLine := "POST /123/123/123 HTTP/1.1"
 
     ctx := context.Background()
     sl, err := readStartLine(ctx, startLine)
@@ -18,7 +18,7 @@ func TestHappy(t *testing.T) {
         t.Fatalf("version invalid, expected %s, got %s", "1.1", sl.HttpVersion)
     }
 
-    if sl.Method != "GET" {
+    if sl.Method != "POST" {
         t.Fatalf("method invalid, expected %s, got %s", "GET", sl.Method)
     }
 

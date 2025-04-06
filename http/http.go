@@ -16,6 +16,7 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 	l := logger.Get(ctx)
 	bufIoReader := bufio.NewReader(conn)
 
+	l.Info("Reading start line")
 	sls, err := bufIoReader.ReadString('\n')
 	if err != nil {
 		l.Error("Startline read failed")
@@ -29,7 +30,9 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 	}
 
 	l.Info("Start Line", "sl", startLine)
-    ahs := make(map[string]string, 0)
+
+	l.Info("Reading headers")
+	ahs := make(map[string]string, 0)
 
 	for {
 		headerLine, err := bufIoReader.ReadString('\n')
@@ -37,43 +40,44 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 			l.Error("headerLine read failed")
 			return
 		}
-        key, value, err := readHeader(ctx, headerLine)
-        if err != nil {
-            if errors.Is(err, headerEOF) {
-                l.Info("Header section ended")
-                break
-            }
-            l.Error("Header Line read error", "err", err.Error())
-            return
-        }
-        ahs[key] = value
+		key, value, err := readHeader(ctx, headerLine)
+		if err != nil {
+			if errors.Is(err, headerEOF) {
+				l.Info("Header section ended")
+				break
+			}
+			l.Error("Header Line read error", "err", err.Error())
+			return
+		}
+		ahs[key] = value
 	}
 
-    l.Info("All Header", "header", ahs)
+	l.Info("All Header", "header", ahs)
 
-    cl, ok := ahs["Content-Length"]
-    if !ok {
-        l.Info("Request has no body")
-        return
-    }
+	l.Info("Reading body")
+	var body *Body
+	cl, ok := ahs["Content-Length"]
+	if ok {
+		clInt, err := strconv.Atoi(cl)
+		if err != nil {
+			l.Error("Content length to integer has error", "err", err.Error())
+			return
+		}
 
-    clInt, err := strconv.Atoi(cl)
-    if err != nil {
-        l.Error("Content length to integer has error", "err", err.Error())
-        return
-    }
+		bodySlice := make([]byte, clInt)
+		_, err = io.ReadFull(bufIoReader, bodySlice)
+		if err != nil {
+			l.Error("Body read faild", "err", err.Error())
+			return
+		}
 
-    bodySlice := make([]byte, clInt)
-    _, err = io.ReadFull(bufIoReader, bodySlice)
-    if err != nil {
-        l.Error("Body read faild", "err", err.Error())
-        return
-    }
+		body, err = readBody(bodySlice)
+		if err != nil {
+			l.Error("Body read error", "err", err.Error())
+			return
+		}
+		l.Info("Body", "body", body)
+	}
 
-    bodyStr, err := readBody(bodySlice)
-    if err != nil {
-        l.Error("Body read error", "err", err.Error())
-        return
-    }
-    l.Info("Body", "body", bodyStr)
+	route(ctx, startLine, ahs, body)
 }

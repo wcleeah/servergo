@@ -20,6 +20,8 @@ func main() {
     defer listener.Close()
     timeoutCtx, cancel := context.WithCancel(context.Background())
     defer cancel()
+    l := logger.Get(timeoutCtx)
+    l.Info("TCP listening on 3000")
 
     for {
         conn, err := listener.Accept()
