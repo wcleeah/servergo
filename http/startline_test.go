@@ -14,8 +14,8 @@ func TestHappy(t *testing.T) {
         t.Fatalf("unexpected error %s", err.Error())
     }
 
-    if sl.HttpVersion != "1.1" {
-        t.Fatalf("version invalid, expected %s, got %s", "1.1", sl.HttpVersion)
+    if sl.ProtocolVersion != "1.1" {
+        t.Fatalf("version invalid, expected %s, got %s", "1.1", sl.ProtocolVersion)
     }
 
     if sl.Method != "POST" {

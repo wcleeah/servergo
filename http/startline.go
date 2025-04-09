@@ -13,13 +13,13 @@ import (
 type StartLine struct {
 	Method      string
 	Url         string
-    MPlusUrl     string
-	HttpVersion string
+	ProtocolVersion string
+	Protocol    string
 }
 
 func readStartLine(ctx context.Context, sls string) (*StartLine, error) {
 	l := logger.Get(ctx)
-    slsTrim := trimCRLF(sls)
+	slsTrim := trimCRLF(sls)
 	l.Info(fmt.Sprintf("Start Line: %s", slsTrim))
 	slsSplitted := strings.Split(slsTrim, " ")
 
@@ -45,14 +45,14 @@ func readStartLine(ctx context.Context, sls string) (*StartLine, error) {
 		return nil, errors.New(fmt.Sprintf("Start Line: invalid protocol -> %s", protocol))
 	}
 
-    if !slices.Contains(SUPPORTED_PROTOCOL_VERSION, version) {
+	if !slices.Contains(SUPPORTED_PROTOCOL_VERSION, version) {
 		return nil, errors.New(fmt.Sprintf("Start Line: invalid protocol version -> %s", version))
-    }
+	}
 
 	return &StartLine{
-        Method: method,
-        Url: url,
-        MPlusUrl: method + url,
-        HttpVersion: version,
-    }, nil
+		Method:      method,
+		Url:         url,
+		ProtocolVersion: version,
+		Protocol:    protocol,
+	}, nil
 }

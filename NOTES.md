@@ -16,3 +16,9 @@
 
 ### Headers
 - CRLF is not allowed (99.9% of use case) in header value
+- Content-Length must be in ASCII format, it cannot be binary represented
+
+## Some reflections
+- It is quite hard to design a strategy to handle the request and response
+  - at last i just follow the go standard library style
+- The design comes very natuarally, it looks like the go std lib http mux now

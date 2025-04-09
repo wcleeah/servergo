@@ -4,11 +4,10 @@ import (
 	"bufio"
 	"context"
 	"errors"
-	"io"
 	"net"
-	"strconv"
 
 	"lwc.com/servergo/logger"
+	"lwc.com/servergo/route"
 )
 
 func HandleConn(ctx context.Context, conn net.Conn) {
@@ -19,6 +18,7 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 	l.Info("Reading start line")
 	sls, err := bufIoReader.ReadString('\n')
 	if err != nil {
+        // write bad request
 		l.Error("Startline read failed")
 		return
 	}
@@ -26,6 +26,7 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 	startLine, err := readStartLine(ctx, sls)
 	if err != nil {
 		l.Error("Start Line read error", "err", err.Error())
+        // write bad request
 		return
 	}
 
@@ -38,6 +39,7 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 		headerLine, err := bufIoReader.ReadString('\n')
 		if err != nil {
 			l.Error("headerLine read failed")
+            // write bad request
 			return
 		}
 		key, value, err := readHeader(ctx, headerLine)
@@ -53,31 +55,7 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 	}
 
 	l.Info("All Header", "header", ahs)
-
-	l.Info("Reading body")
-	var body *Body
-	cl, ok := ahs["Content-Length"]
-	if ok {
-		clInt, err := strconv.Atoi(cl)
-		if err != nil {
-			l.Error("Content length to integer has error", "err", err.Error())
-			return
-		}
-
-		bodySlice := make([]byte, clInt)
-		_, err = io.ReadFull(bufIoReader, bodySlice)
-		if err != nil {
-			l.Error("Body read faild", "err", err.Error())
-			return
-		}
-
-		body, err = readBody(bodySlice)
-		if err != nil {
-			l.Error("Body read error", "err", err.Error())
-			return
-		}
-		l.Info("Body", "body", body)
-	}
-
-	route(ctx, startLine, ahs, body)
+    req := route.NewReq(startLine.Method, startLine.Url, startLine.Protocol, startLine.ProtocolVersion, ahs, conn)
+    res := route.NewRes(startLine.Protocol, startLine.ProtocolVersion, conn)
+    route.Route(ctx, req, res)
 }
