@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"log"
 	"strconv"
 )
 
@@ -18,8 +19,6 @@ type Res struct {
 }
 
 type ResWriteParam struct {
-	Protocol        string
-	ProtocolVersion string
 	StatusCode      string
 	Body            []byte
 	Ahs             map[string]string
@@ -46,14 +45,18 @@ func (r *Res) Write(ctx context.Context, param *ResWriteParam) {
 	r.writeStartLine(param)
 	r.writeHeader(param)
 	r.w.Write(param.Body)
+    log.Println(len(r.w.Bytes()))
 
-	r.Conn.Write(r.w.Bytes())
+    _, err := r.Conn.Write(r.w.Bytes())
+    if err != nil {
+        log.Println(err)
+    }
 }
 
 func (r *Res) writeStartLine(param *ResWriteParam) {
-	r.w.WriteString(param.Protocol)
+	r.w.WriteString(r.Protocol)
 	r.w.Write(slash)
-	r.w.WriteString(param.ProtocolVersion)
+	r.w.WriteString(r.ProtocolVersion)
 	r.w.Write(emptySpace)
 	r.w.WriteString(param.StatusCode)
 	r.w.Write(emptySpace)
