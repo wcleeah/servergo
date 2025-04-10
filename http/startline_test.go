@@ -6,7 +6,7 @@ import (
 )
 
 func TestHappy(t *testing.T) {
-	startLine := "POST /123/123/123 HTTP/1.1"
+	startLine := "POST /123/123/123 HTTP/1.0"
 
 	ctx := context.Background()
 	sl, err := readStartLine(ctx, startLine)
@@ -14,8 +14,8 @@ func TestHappy(t *testing.T) {
 		t.Fatalf("unexpected error %s", err.Error())
 	}
 
-	if sl.ProtocolVersion != "1.1" {
-		t.Fatalf("version invalid, expected %s, got %s", "1.1", sl.ProtocolVersion)
+	if sl.ProtocolVersion != "1.0" {
+		t.Fatalf("version invalid, expected %s, got %s", "1.0", sl.ProtocolVersion)
 	}
 
 	if sl.Method != "POST" {
@@ -29,7 +29,7 @@ func TestHappy(t *testing.T) {
 
 // Invalid structure 1
 func TestInSt1(t *testing.T) {
-	startLine := "GET /123/123/123 http/1.1 123123123123"
+	startLine := "GET /123/123/123 http/1.0 123123123123"
 
 	ctx := context.Background()
 	_, err := readStartLine(ctx, startLine)

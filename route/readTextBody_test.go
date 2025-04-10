@@ -15,7 +15,7 @@ func (r *Req) TestTextBodyHappy(t *testing.T) {
     rc := io.NopCloser(strings.NewReader(str))
     defer rc.Close()
 
-    req := NewReq("GET", "/", "HTTP/1.1", "1.1", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
+    req := NewReq("GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
     s, err := req.ReadTextBody()
     if err != nil {
         t.Fatalf("Error reading body: %v", err.Error())

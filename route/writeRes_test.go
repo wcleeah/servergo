@@ -12,7 +12,7 @@ func test(rs string, p *ResWriteParam) error {
 	r, w := io.Pipe()
 	defer r.Close()
 	defer w.Close()
-	res := NewRes("HTTP", "1.1", w)
+	res := NewRes("HTTP", "1.0", w)
 	go func() {
 		defer w.Close()
 		res.Write(context.Background(), p)
@@ -37,7 +37,7 @@ func TestWriteResHappy_Header(t *testing.T) {
 	body := []byte(bodyStr)
 	statusCode := "200"
 	statusStr := codeMsgMap[statusCode]
-    resultStr := fmt.Sprintf("HTTP/1.1 %s %s\r\ntest: haha\r\nContent-Length: %d\r\n\r\n%s", statusCode, statusStr, len(body), bodyStr)
+    resultStr := fmt.Sprintf("HTTP/1.0 %s %s\r\ntest: haha\r\nContent-Length: %d\r\n\r\n%s", statusCode, statusStr, len(body), bodyStr)
 	rwp := ResWriteParam{
 		StatusCode: statusCode,
 		Body:       body,
@@ -56,7 +56,7 @@ func TestWriteResHappy_Body(t *testing.T) {
 	body := []byte(bodyStr)
 	statusCode := "200"
 	statusStr := codeMsgMap[statusCode]
-	resultStr := fmt.Sprintf("HTTP/1.1 %s %s\r\nContent-Length: %d\r\n\r\n%s", statusCode, statusStr, len(body), bodyStr)
+	resultStr := fmt.Sprintf("HTTP/1.0 %s %s\r\nContent-Length: %d\r\n\r\n%s", statusCode, statusStr, len(body), bodyStr)
 	rwp := ResWriteParam{
 		StatusCode: statusCode,
 		Body:       body,
