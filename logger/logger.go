@@ -15,7 +15,6 @@ func Setup() {
 	slog.SetDefault(l)
 }
 
-
 func Get(ctx context.Context) *slog.Logger {
 	id := ctx.Value(TRACE_ID_KEY)
 	if id == nil {
@@ -23,5 +22,3 @@ func Get(ctx context.Context) *slog.Logger {
 	}
 	return slog.With(TRACE_ID_KEY, id)
 }
-
-

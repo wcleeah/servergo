@@ -11,10 +11,10 @@ import (
 )
 
 type StartLine struct {
-	Method      string
-	Url         string
+	Method          string
+	Url             string
 	ProtocolVersion string
-	Protocol    string
+	Protocol        string
 }
 
 func readStartLine(ctx context.Context, sls string) (*StartLine, error) {
@@ -50,9 +50,9 @@ func readStartLine(ctx context.Context, sls string) (*StartLine, error) {
 	}
 
 	return &StartLine{
-		Method:      method,
-		Url:         url,
+		Method:          method,
+		Url:             url,
 		ProtocolVersion: version,
-		Protocol:    protocol,
+		Protocol:        protocol,
 	}, nil
 }

@@ -18,7 +18,7 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 	l.Info("Reading start line")
 	sls, err := bufIoReader.ReadString('\n')
 	if err != nil {
-        // write bad request
+		// write bad request
 		l.Error("Startline read failed")
 		return
 	}
@@ -26,7 +26,7 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 	startLine, err := readStartLine(ctx, sls)
 	if err != nil {
 		l.Error("Start Line read error", "err", err.Error())
-        // write bad request
+		// write bad request
 		return
 	}
 
@@ -39,7 +39,7 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 		headerLine, err := bufIoReader.ReadString('\n')
 		if err != nil {
 			l.Error("headerLine read failed")
-            // write bad request
+			// write bad request
 			return
 		}
 		key, value, err := readHeader(ctx, headerLine)
@@ -55,7 +55,7 @@ func HandleConn(ctx context.Context, conn net.Conn) {
 	}
 
 	l.Info("All Header", "header", ahs)
-    req := route.NewReq(startLine.Method, startLine.Url, startLine.Protocol, startLine.ProtocolVersion, ahs, conn)
-    res := route.NewRes(startLine.Protocol, startLine.ProtocolVersion, conn)
-    route.Route(ctx, req, res)
+	req := route.NewReq(startLine.Method, startLine.Url, startLine.Protocol, startLine.ProtocolVersion, ahs, conn)
+	res := route.NewRes(startLine.Protocol, startLine.ProtocolVersion, conn)
+	route.Route(ctx, req, res)
 }

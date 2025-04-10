@@ -30,12 +30,12 @@ var (
 )
 
 func NewRes(protocol, protocolVersion string, conn net.Conn) *Res {
-    var w bytes.Buffer
+	var w bytes.Buffer
 	return &Res{
 		Protocol:        protocol,
 		ProtocolVersion: protocolVersion,
 		Conn:            conn,
-        w:               &w,
+		w:               &w,
 	}
 }
 
