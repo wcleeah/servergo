@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"log"
 	"strconv"
 )
 
@@ -45,12 +44,8 @@ func (r *Res) Write(ctx context.Context, param *ResWriteParam) {
 	r.writeStartLine(param)
 	r.writeHeader(param)
 	r.w.Write(param.Body)
-    log.Println(len(r.w.Bytes()))
 
-    _, err := r.Conn.Write(r.w.Bytes())
-    if err != nil {
-        log.Println(err)
-    }
+    r.Conn.Write(r.w.Bytes())
 }
 
 func (r *Res) writeStartLine(param *ResWriteParam) {
