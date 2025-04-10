@@ -10,17 +10,17 @@ import (
 type Res struct {
 	Protocol        string
 	ProtocolVersion string
-    // using io.WriteCloser provides a few benefit
-    // 1. testing will be easier because we don't need to create a fake connection
-    // 2. req probably should not be reading from the connection (?)
-	Conn            io.WriteCloser
-	w               *bytes.Buffer
+	// using io.WriteCloser provides a few benefit
+	// 1. testing will be easier because we don't need to create a fake connection
+	// 2. req probably should not be reading from the connection (?)
+	Conn io.WriteCloser
+	w    *bytes.Buffer
 }
 
 type ResWriteParam struct {
-	StatusCode      string
-	Body            []byte
-	Ahs             map[string]string
+	StatusCode string
+	Body       []byte
+	Ahs        map[string]string
 }
 
 var (
@@ -45,7 +45,7 @@ func (r *Res) Write(ctx context.Context, param *ResWriteParam) {
 	r.writeHeader(param)
 	r.w.Write(param.Body)
 
-    r.Conn.Write(r.w.Bytes())
+	r.Conn.Write(r.w.Bytes())
 }
 
 func (r *Res) writeStartLine(param *ResWriteParam) {

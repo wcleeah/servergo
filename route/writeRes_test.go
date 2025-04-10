@@ -37,13 +37,13 @@ func TestWriteResHappy_Header(t *testing.T) {
 	body := []byte(bodyStr)
 	statusCode := "200"
 	statusStr := codeMsgMap[statusCode]
-    resultStr := fmt.Sprintf("HTTP/1.0 %s %s\r\ntest: haha\r\nContent-Length: %d\r\n\r\n%s", statusCode, statusStr, len(body), bodyStr)
+	resultStr := fmt.Sprintf("HTTP/1.0 %s %s\r\ntest: haha\r\nContent-Length: %d\r\n\r\n%s", statusCode, statusStr, len(body), bodyStr)
 	rwp := ResWriteParam{
 		StatusCode: statusCode,
 		Body:       body,
-		Ahs:        map[string]string{
-            "test": "haha",
-        },
+		Ahs: map[string]string{
+			"test": "haha",
+		},
 	}
 	err := test(resultStr, &rwp)
 	if err != nil {

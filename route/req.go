@@ -14,12 +14,12 @@ type Req struct {
 	Protocol        string
 	ProtocolVersion string
 	ahs             map[string]string
-    // using io.ReadCloser provides a few benefit
-    // 1. testing will be easier because we don't need to create a fake connection
-    // 2. req probably should not be writing to the connection (?)
-	conn            io.ReadCloser
-	body            []byte
-	textBody        string
+	// using io.ReadCloser provides a few benefit
+	// 1. testing will be easier because we don't need to create a fake connection
+	// 2. req probably should not be writing to the connection (?)
+	conn     io.ReadCloser
+	body     []byte
+	textBody string
 }
 
 func NewReq(method, url, protocol, protocolVersion string, ahs map[string]string, conn io.ReadCloser) *Req {

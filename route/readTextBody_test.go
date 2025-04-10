@@ -8,20 +8,20 @@ import (
 )
 
 func (r *Req) TestTextBodyHappy(t *testing.T) {
-    str := "Hello World"
-    body := []byte(str)
-    l := len(body)
+	str := "Hello World"
+	body := []byte(str)
+	l := len(body)
 
-    rc := io.NopCloser(strings.NewReader(str))
-    defer rc.Close()
+	rc := io.NopCloser(strings.NewReader(str))
+	defer rc.Close()
 
-    req := NewReq("GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
-    s, err := req.ReadTextBody()
-    if err != nil {
-        t.Fatalf("Error reading body: %v", err.Error())
-    }
+	req := NewReq("GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
+	s, err := req.ReadTextBody()
+	if err != nil {
+		t.Fatalf("Error reading body: %v", err.Error())
+	}
 
-    if s != str {
-        t.Fatalf("Body not equal")
-    }
+	if s != str {
+		t.Fatalf("Body not equal")
+	}
 }
