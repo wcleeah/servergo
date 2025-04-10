@@ -3,14 +3,17 @@ package route
 import (
 	"bytes"
 	"context"
-	"net"
+	"io"
 	"strconv"
 )
 
 type Res struct {
 	Protocol        string
 	ProtocolVersion string
-	Conn            net.Conn
+    // using io.WriteCloser provides a few benefit
+    // 1. testing will be easier because we don't need to create a fake connection
+    // 2. req probably should not be reading from the connection (?)
+	Conn            io.WriteCloser
 	w               *bytes.Buffer
 }
 
@@ -29,7 +32,7 @@ var (
 	slash      = []byte("/")
 )
 
-func NewRes(protocol, protocolVersion string, conn net.Conn) *Res {
+func NewRes(protocol, protocolVersion string, conn io.WriteCloser) *Res {
 	var w bytes.Buffer
 	return &Res{
 		Protocol:        protocol,

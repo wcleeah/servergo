@@ -2,9 +2,7 @@ package route
 
 import (
 	"bufio"
-	"errors"
 	"io"
-	"net"
 	"strconv"
 	"sync"
 	"unicode/utf8"
@@ -16,12 +14,15 @@ type Req struct {
 	Protocol        string
 	ProtocolVersion string
 	ahs             map[string]string
-	conn            net.Conn
+    // using io.ReadCloser provides a few benefit
+    // 1. testing will be easier because we don't need to create a fake connection
+    // 2. req probably should not be writing to the connection (?)
+	conn            io.ReadCloser
 	body            []byte
 	textBody        string
 }
 
-func NewReq(method, url, protocol, protocolVersion string, ahs map[string]string, conn net.Conn) *Req {
+func NewReq(method, url, protocol, protocolVersion string, ahs map[string]string, conn io.ReadCloser) *Req {
 	return &Req{
 		Method:          method,
 		Url:             url,
@@ -37,27 +38,27 @@ func (r *Req) ReadBody() ([]byte, error) {
 	ov := sync.OnceValue(func() error {
 		cl := r.GetHeader("Content-Length")
 		if cl == "" {
-			return errors.New("Content length not specified in request")
+			return ContentLengthNotSpecified
 		}
 
 		clInt, err := strconv.Atoi(cl)
 		if err != nil {
-			return errors.New("Content length malformed")
+			return ContentLengthMalformed
 		}
 
 		bs := make([]byte, clInt)
 		bufIoReader := bufio.NewReader(r.conn)
 		_, err = io.ReadFull(bufIoReader, bs)
 		if err != nil {
-			return errors.New("Body malformed")
+			return BodyMalformed
 		}
 
 		valid := utf8.Valid(bs)
 		if !valid {
-			return errors.New("Body malformed")
+			return BodyMalformed
 		}
 		if len(bs) == 0 {
-			return errors.New("Body malformed")
+			return BodyMalformed
 		}
 
 		r.body = bs
