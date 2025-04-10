@@ -15,6 +15,7 @@ func TestReadBodyHappy(t *testing.T) {
 	l := len(body)
 
 	rc := io.NopCloser(strings.NewReader(str))
+    defer rc.Close()
 
 	req := NewReq("GET", "/", "HTTP/1.1", "1.1", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
 	b, err := req.ReadBody()
@@ -32,6 +33,7 @@ func TestReadBodyHappy(t *testing.T) {
 func TestReadBodySad_NoContentLength(t *testing.T) {
 	str := "Hello World"
 	rc := io.NopCloser(strings.NewReader(str))
+    defer rc.Close()
 
 	req := NewReq("GET", "/", "HTTP/1.1", "1.1", map[string]string{}, rc)
 	_, err := req.ReadBody()
@@ -47,6 +49,7 @@ func TestReadBodySad_NoContentLength(t *testing.T) {
 func TestReadBodySad_ContentLengthMalformed(t *testing.T) {
 	str := "Hello World"
 	rc := io.NopCloser(strings.NewReader(str))
+    defer rc.Close()
 
 	req := NewReq("GET", "/", "HTTP/1.1", "1.1", map[string]string{"Content-Length": "abc"}, rc)
 	_, err := req.ReadBody()
@@ -62,6 +65,7 @@ func TestReadBodySad_ContentLengthMalformed(t *testing.T) {
 func TestReadBodySad_BodyInvalidUTF8(t *testing.T) {
 	invalidBytes := []byte{0xC0, 0x80}
 	rc := io.NopCloser(bytes.NewReader(invalidBytes))
+    defer rc.Close()
 	l := len(invalidBytes)
 
 	req := NewReq("GET", "/", "HTTP/1.1", "1.1", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
@@ -78,6 +82,7 @@ func TestReadBodySad_BodyInvalidUTF8(t *testing.T) {
 func TestReadBodySad_BodyEmpty(t *testing.T) {
 	invalidBytes := []byte{}
 	rc := io.NopCloser(bytes.NewReader(invalidBytes))
+    defer rc.Close()
 	l := len(invalidBytes)
 
 	req := NewReq("GET", "/", "HTTP/1.1", "1.1", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)

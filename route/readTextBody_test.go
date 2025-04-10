@@ -7,12 +7,13 @@ import (
 	"testing"
 )
 
-func (r *Req) TestHappy(t *testing.T) {
+func (r *Req) TestTextBodyHappy(t *testing.T) {
     str := "Hello World"
     body := []byte(str)
     l := len(body)
 
     rc := io.NopCloser(strings.NewReader(str))
+    defer rc.Close()
 
     req := NewReq("GET", "/", "HTTP/1.1", "1.1", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
     s, err := req.ReadTextBody()
