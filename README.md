@@ -1,5 +1,6 @@
 # ServerGo
-A experiment server so that i can understand how a http server works, it starts a tcp server, and some hand craft http parsing
+A experimental server so that i can understand how a http server works, it starts a tcp server, and some hand craft http parsing. 
+It is absolutely not for production, it is only for me to try building a http server in go.
 
 ## Product
 - A HTTP server from scratch (TCP server -> response)
