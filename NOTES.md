@@ -21,4 +21,4 @@
 ## Some reflections
 - It is quite hard to design a strategy to handle the request and response
   - at last i just follow the go standard library style
-- The design comes very natuarally, it looks like the go std lib http mux now
+- The design comes very natuarally, it kinda looks like the go std lib http mux now

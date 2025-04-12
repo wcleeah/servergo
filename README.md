@@ -19,3 +19,5 @@ It is absolutely not for production, it is only for me to try building a http se
 - [ ] load test
 
 - [ ] add the route i need to use lol
+
+- [ ] read go net/http src code
