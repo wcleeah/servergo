@@ -12,10 +12,10 @@ func test(rs string, p *ResWriteParam) error {
 	r, w := io.Pipe()
 	defer r.Close()
 	defer w.Close()
-	res := NewRes("HTTP", "1.0", w)
+	res := NewRes(context.Background(), "HTTP", "1.0", w)
 	go func() {
 		defer w.Close()
-		res.Write(context.Background(), p)
+		res.Write(p)
 	}()
 	// if the result are correct, the size of the correct string must be the same as the result
 	bs := make([]byte, len(p.Body))

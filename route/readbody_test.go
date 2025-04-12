@@ -2,6 +2,7 @@ package route
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strconv"
@@ -17,7 +18,7 @@ func TestReadBodyHappy(t *testing.T) {
 	rc := io.NopCloser(strings.NewReader(str))
 	defer rc.Close()
 
-	req := NewReq("GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
+	req := NewReq(context.Background(), "GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
 	b, err := req.ReadBody()
 	if err != nil {
 		t.Fatalf("Error reading body: %v", err.Error())
@@ -35,7 +36,7 @@ func TestReadBodySad_NoContentLength(t *testing.T) {
 	rc := io.NopCloser(strings.NewReader(str))
 	defer rc.Close()
 
-	req := NewReq("GET", "/", "HTTP/1.0", "1.0", map[string]string{}, rc)
+	req := NewReq(context.Background(), "GET", "/", "HTTP/1.0", "1.0", map[string]string{}, rc)
 	_, err := req.ReadBody()
 	if err == nil {
 		t.Fatal("ReadBody should have failed")
@@ -51,7 +52,7 @@ func TestReadBodySad_ContentLengthMalformed(t *testing.T) {
 	rc := io.NopCloser(strings.NewReader(str))
 	defer rc.Close()
 
-	req := NewReq("GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": "abc"}, rc)
+	req := NewReq(context.Background(), "GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": "abc"}, rc)
 	_, err := req.ReadBody()
 	if err == nil {
 		t.Fatal("ReadBody should have failed")
@@ -68,7 +69,7 @@ func TestReadBodySad_BodyInvalidUTF8(t *testing.T) {
 	defer rc.Close()
 	l := len(invalidBytes)
 
-	req := NewReq("GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
+	req := NewReq(context.Background(), "GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
 	_, err := req.ReadBody()
 	if err == nil {
 		t.Fatal("ReadBody should have failed")
@@ -85,7 +86,7 @@ func TestReadBodySad_BodyEmpty(t *testing.T) {
 	defer rc.Close()
 	l := len(invalidBytes)
 
-	req := NewReq("GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
+	req := NewReq(context.Background(), "GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
 	_, err := req.ReadBody()
 	if err == nil {
 		t.Fatal("ReadBody should have failed")

@@ -1,6 +1,7 @@
 package route
 
 import (
+	"context"
 	"io"
 	"strconv"
 	"strings"
@@ -14,8 +15,9 @@ func (r *Req) TestTextBodyHappy(t *testing.T) {
 
 	rc := io.NopCloser(strings.NewReader(str))
 	defer rc.Close()
+    ctx := context.Background()
 
-	req := NewReq("GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
+	req := NewReq(ctx, "GET", "/", "HTTP/1.0", "1.0", map[string]string{"Content-Length": strconv.Itoa(l)}, rc)
 	s, err := req.ReadTextBody()
 	if err != nil {
 		t.Fatalf("Error reading body: %v", err.Error())
