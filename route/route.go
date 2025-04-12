@@ -1,24 +1,23 @@
 package route
 
 import (
-	"context"
 	"errors"
 	"fmt"
-
-	"lwc.com/servergo/logger"
 )
 
 // Add mutex...?
 var routes = map[string]func(req *Req, res *Res){}
 
-func Route(ctx context.Context, req *Req, res *Res) error {
-	l := logger.Get(ctx)
+func Route(req *Req, res *Res) error {
 	// assert method and url
 	mPlusUrl := req.Method + " " + req.Url
 	rf, ok := routes[mPlusUrl]
 	if !ok {
-		l.Info("No route found for method and url", "method", req.Method, "url", req.Url)
-		return nil
+		res.Write(&ResWriteParam{
+			StatusCode: "404",
+			Body:       []byte("Wrong url / method?"),
+		})
+        return nil
 	}
 	rf(req, res)
 	return nil

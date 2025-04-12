@@ -32,7 +32,7 @@ func TestHappyEOF(t *testing.T) {
 	ctx := context.Background()
 	key, value, err := readHeader(ctx, hl)
 	if err != nil {
-		if !errors.Is(headerEOF, err) {
+		if !errors.Is(headerEnds, err) {
 			t.Fatalf("unexpected error %s", err.Error())
 		}
 	}

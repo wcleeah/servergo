@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"lwc.com/servergo/http"
 	"lwc.com/servergo/logger"
+	"lwc.com/servergo/route"
 )
 
 func main() {
@@ -22,6 +23,16 @@ func main() {
 	defer cancel()
 	l := logger.Get(timeoutCtx)
 	l.Info("TCP listening on 3000")
+
+    route.AddRoute("GET /health", func(req *route.Req, res *route.Res) {
+        res.Write(&route.ResWriteParam{
+            StatusCode: "200",
+            Ahs: map[string]string{
+                "Custom-Header": "hello",
+            },
+            Body: []byte("okokokokokokokok"),
+        })
+    })
 
 	for {
 		conn, err := listener.Accept()

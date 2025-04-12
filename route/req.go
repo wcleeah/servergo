@@ -2,6 +2,7 @@ package route
 
 import (
 	"bufio"
+	"context"
 	"io"
 	"strconv"
 	"sync"
@@ -20,9 +21,10 @@ type Req struct {
 	conn     io.ReadCloser
 	body     []byte
 	textBody string
+	ctx      context.Context
 }
 
-func NewReq(method, url, protocol, protocolVersion string, ahs map[string]string, conn io.ReadCloser) *Req {
+func NewReq(ctx context.Context, method, url, protocol, protocolVersion string, ahs map[string]string, conn io.ReadCloser) *Req {
 	return &Req{
 		Method:          method,
 		Url:             url,
@@ -31,6 +33,7 @@ func NewReq(method, url, protocol, protocolVersion string, ahs map[string]string
 		ahs:             ahs,
 		conn:            conn,
 		body:            nil,
+		ctx:             ctx,
 	}
 }
 
@@ -94,4 +97,8 @@ func (r *Req) GetHeader(key string) string {
 		return h
 	}
 	return ""
+}
+
+func (r *Req) ReqCtx() context.Context {
+    return r.ctx
 }

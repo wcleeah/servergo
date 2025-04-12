@@ -5,20 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-
-	"lwc.com/servergo/logger"
 )
 
-var headerEOF = errors.New("Headers ended")
 
 func readHeader(ctx context.Context, hl string) (string, string, error) {
-	l := logger.Get(ctx)
 	hlTrim := trimCRLF(hl)
 	if hlTrim == "" {
-		return "", "", headerEOF
+		return "", "", headerEnds
 	}
-
-	l.Info("Header Line", "hl", hlTrim)
 
 	hSplitted := strings.Split(hlTrim, ": ")
 
