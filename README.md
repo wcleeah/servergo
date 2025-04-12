@@ -16,3 +16,5 @@ A experiment server so that i can understand how a http server works, it starts 
 - [ ] 2 support
 - [ ] CORS support
 - [ ] load test
+
+- [ ] add the route i need to use lol
