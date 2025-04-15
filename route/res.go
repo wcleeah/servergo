@@ -13,9 +13,10 @@ type Res struct {
 	// using io.WriteCloser provides a few benefit
 	// 1. testing will be easier because we don't need to create a fake connection
 	// 2. req probably should not be reading from the connection (?)
-	conn io.WriteCloser
-	w    *bytes.Buffer
-	ctx  context.Context
+	conn      io.WriteCloser
+	w         *bytes.Buffer
+	ctx       context.Context
+	keepAlive bool
 }
 
 type ResWriteParam struct {
@@ -31,7 +32,7 @@ var (
 	slash      = []byte("/")
 )
 
-func NewRes(ctx context.Context, protocol, protocolVersion string, conn io.WriteCloser) *Res {
+func NewRes(ctx context.Context, protocol, protocolVersion string, keepAlive bool, conn io.WriteCloser) *Res {
 	var w bytes.Buffer
 	return &Res{
 		Protocol:        protocol,
@@ -39,6 +40,7 @@ func NewRes(ctx context.Context, protocol, protocolVersion string, conn io.Write
 		conn:            conn,
 		w:               &w,
 		ctx:             ctx,
+		keepAlive:       keepAlive,
 	}
 }
 
@@ -74,6 +76,11 @@ func (r *Res) writeHeader(param *ResWriteParam) {
 		r.w.WriteString("Content-Type: text/plain")
 		r.w.Write(crlf)
 	}
+
+    if r.keepAlive {
+        r.w.WriteString("Connection: keep-alive")
+        r.w.Write(crlf)
+    }
 	contentLength := len(param.Body)
 	if contentLength > 0 {
 		r.w.WriteString("Content-Length")

@@ -8,11 +8,11 @@ import (
 	"testing"
 )
 
-func test(rs string, p *ResWriteParam) error {
+func test(rs string, keepAlive bool, p *ResWriteParam) error {
 	r, w := io.Pipe()
 	defer r.Close()
 	defer w.Close()
-	res := NewRes(context.Background(), "HTTP", "1.0", w)
+	res := NewRes(context.Background(), "HTTP", "1.0", keepAlive, w)
 	go func() {
 		defer w.Close()
 		res.Write(p)
@@ -32,7 +32,7 @@ func test(rs string, p *ResWriteParam) error {
 	return nil
 }
 
-func TestWriteResHappy_Header(t *testing.T) {
+func TestWriteResHappy_Header_No_KeepAlive(t *testing.T) {
 	bodyStr := "Hello World"
 	body := []byte(bodyStr)
 	statusCode := "200"
@@ -45,11 +45,31 @@ func TestWriteResHappy_Header(t *testing.T) {
 			"test": "haha",
 		},
 	}
-	err := test(resultStr, &rwp)
+	err := test(resultStr, false, &rwp)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
+
+func TestWriteResHappy_Header_KeepAlive(t *testing.T) {
+	bodyStr := "Hello World"
+	body := []byte(bodyStr)
+	statusCode := "200"
+	statusStr := codeMsgMap[statusCode]
+    resultStr := fmt.Sprintf("HTTP/1.0 %s %s\r\ntest: haha\r\nContent-Length: %d\r\nConnection: keep-alive\r\n\r\n%s", statusCode, statusStr, len(body), bodyStr)
+	rwp := ResWriteParam{
+		StatusCode: statusCode,
+		Body:       body,
+		Ahs: map[string]string{
+			"test": "haha",
+		},
+	}
+	err := test(resultStr, true, &rwp)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 
 func TestWriteResHappy_Body(t *testing.T) {
 	bodyStr := "Hello World"
@@ -62,7 +82,7 @@ func TestWriteResHappy_Body(t *testing.T) {
 		Body:       body,
 		Ahs:        map[string]string{},
 	}
-	err := test(resultStr, &rwp)
+	err := test(resultStr, false, &rwp)
 	if err != nil {
 		t.Fatal(err)
 	}
