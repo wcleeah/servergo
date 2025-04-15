@@ -22,3 +22,9 @@
 - It is quite hard to design a strategy to handle the request and response
   - at last i just follow the go standard library style
 - The design comes very natuarally, it kinda looks like the go std lib http mux now
+
+## HTTP 1.1: main difference
+- host header is now required
+- persistent connection is now supported
+  - by using Connection header and default timeout
+- chunked transfer encoding is now supported

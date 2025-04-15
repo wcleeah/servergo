@@ -12,12 +12,17 @@ It is absolutely not for production, it is only for me to try building a http se
 - [x] unit test for route.Req and route.Res 
 - [x] assert / error handling
 - [x] add route and see if the whole thing works 
-- [ ] some more unit testing
+- [x] some more unit testing
 - [ ] 1.1 support
+  - [ ] Connection: Keep-Alive
+  - [ ] Mandatory Host header
+  - [ ] Chunked Transfer Encoding
 - [ ] 2 support
 - [ ] CORS support
 - [ ] load test
-
 - [ ] add the route i need to use lol
 
-- [ ] read go net/http src code
+## Future
+- [ ] full compatible with the specification
+- [ ] streaming? (but http/2 already kind of does that)
+- [ ] websocket
