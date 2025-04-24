@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"testing"
 )
 
@@ -47,4 +48,43 @@ func TestInSt2(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected error %s", "invalid structure")
 	}
+}
+
+func TestUnsupportedMethod(t *testing.T) {
+	startLine := "ABC /123/123/123 HTTP/1.0"
+
+	ctx := context.Background()
+	_, err := readStartLine(ctx, startLine)
+	if err == nil {
+		t.Fatalf("expected error %s", "invalid structure")
+	}
+    if !errors.Is(err, unsupportedMethod) {
+        t.Fatalf("wrong error, expected: %s, got: %s", unsupportedMethod.Error(), err)
+    }
+}
+
+func TestUnsupportedProtocol(t *testing.T) {
+	startLine := "GET /123/123/123 HAHAHAHAHAH/1.0"
+
+	ctx := context.Background()
+	_, err := readStartLine(ctx, startLine)
+	if err == nil {
+		t.Fatalf("expected error %s", "invalid structure")
+	}
+    if !errors.Is(err, unsupportedProtocol) {
+        t.Fatalf("wrong error, expected: %s, got: %s", unsupportedProtocol.Error(), err)
+    }
+}
+
+func TestUnsupportedProtocolVersion(t *testing.T) {
+	startLine := "GET /123/123/123 HTTP/3.0"
+
+	ctx := context.Background()
+	_, err := readStartLine(ctx, startLine)
+	if err == nil {
+		t.Fatalf("expected error %s", "invalid structure")
+	}
+    if !errors.Is(err, unsupportedProtocolVersion) {
+        t.Fatalf("wrong error, expected: %s, got: %s", unsupportedProtocolVersion.Error(), err)
+    }
 }
