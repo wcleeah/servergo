@@ -15,5 +15,10 @@ var SUPPORTED_PROTOCOL_VERSION = []string{
 
 const (
 	SUPPORTED_PROTOCOL = "HTTP"
+	CRLF = "\r\n"
+)
+
+var (
+	CRLF_BYTES = []byte(CRLF)
 )
 

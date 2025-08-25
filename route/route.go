@@ -8,7 +8,7 @@ import (
 // Add mutex...?
 var routes = map[string]func(req *Req, res *Res){}
 
-func Route(req *Req, res *Res) error {
+func Route(req *Req, res *Res) {
 	// assert method and url
 	mPlusUrl := req.Method + " " + req.Url
 	rf, ok := routes[mPlusUrl]
@@ -17,10 +17,8 @@ func Route(req *Req, res *Res) error {
 			StatusCode: "404",
 			Body:       []byte("Wrong url / method?"),
 		})
-        return nil
 	}
 	rf(req, res)
-	return nil
 }
 
 func AddRoute(key string, f func(req *Req, res *Res)) error {

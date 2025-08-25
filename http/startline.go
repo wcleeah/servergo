@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -17,14 +16,16 @@ type StartLine struct {
 	Protocol        string
 }
 
-func readStartLine(ctx context.Context, sls string) (*StartLine, error) {
+func readStartLine(ctx context.Context, slb []byte) (*StartLine, error) {
 	l := logger.Get(ctx)
-	slsTrim := trimCRLF(sls)
-	l.Info(fmt.Sprintf("Start Line: %s", slsTrim))
-	slsSplitted := strings.Split(slsTrim, " ")
+	sls := trimCRLF(string(slb))
+	l.Info(fmt.Sprintf("Start Line: %s", sls))
+	// go internal uses Cut, because of standardization?
+	// also, not like field lines, start lines only allow one space in between
+	slsSplitted := strings.Split(sls, " ")
 
 	if len(slsSplitted) != 3 {
-		return nil, errors.New(fmt.Sprintf("Start Line: malformed structure, there are %d arguments", len(slsSplitted)))
+		return nil, fmt.Errorf("Start Line: malformed structure, there are %d arguments", len(slsSplitted))
 	}
 	method := slsSplitted[0]
 	url := slsSplitted[1]
@@ -35,12 +36,12 @@ func readStartLine(ctx context.Context, sls string) (*StartLine, error) {
     }
 
 	if !strings.HasPrefix(url, "/") {
-		return nil, errors.New(fmt.Sprintf("Start Line: malformed url -> %s", url))
+		return nil, fmt.Errorf("Start Line: malformed url -> %s", url)
 	}
 
 	hvSplitted := strings.Split(httpVersion, "/")
 	if len(hvSplitted) != 2 {
-		return nil, errors.New(fmt.Sprintf("Start Line: malformed protocol and version -> %s", httpVersion))
+		return nil, fmt.Errorf("Start Line: malformed protocol and version -> %s", httpVersion)
 	}
 
 	protocol := hvSplitted[0]

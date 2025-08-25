@@ -34,13 +34,35 @@ func main() {
         })
     })
 
+    route.AddRoute("POST /user", func(req *route.Req, res *route.Res) {
+
+		l := logger.Get(req.Ctx())
+		body, err := req.Body()
+		if err != nil {
+			res.Write(&route.ResWriteParam{
+				StatusCode: "400",
+				Body: []byte("nobody nobody but you"),
+			})
+		}
+
+		l.Info("Body", "Body", string(body))
+		res.Write(&route.ResWriteParam{
+			StatusCode: "200",
+			Ahs: map[string]string{
+				"Custom-Header": "yoooooooooooo",
+			},
+			Body: []byte("useruseruseruser"),
+		})
+    })
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Printf("Error when accepting connection: %s", err.Error())
 		}
 		ctx := context.WithValue(timeoutCtx, logger.TRACE_ID_KEY, uuid.NewString())
+		handler := http.NewConnHandler()
 
-		go http.HandleConn(ctx, conn)
+		go handler.Handle(ctx, conn)
 	}
 }

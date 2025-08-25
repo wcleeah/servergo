@@ -26,7 +26,6 @@ type ResWriteParam struct {
 }
 
 var (
-	crlf       = []byte("\r\n")
 	emptySpace = []byte(" ")
 	colon      = []byte(":")
 	slash      = []byte("/")
@@ -48,6 +47,7 @@ func (r *Res) Write(param *ResWriteParam) {
 	r.writeStartLine(param)
 	r.writeHeader(param)
 	r.w.Write(param.Body)
+	r.w.Write(crlf)
 
 	r.conn.Write(r.w.Bytes())
 }
@@ -80,7 +80,11 @@ func (r *Res) writeHeader(param *ResWriteParam) {
     if r.keepAlive {
         r.w.WriteString("Connection: keep-alive")
         r.w.Write(crlf)
-    }
+    } else {
+        r.w.WriteString("Connection: close")
+        r.w.Write(crlf)
+	}
+
 	contentLength := len(param.Body)
 	if contentLength > 0 {
 		r.w.WriteString("Content-Length")
