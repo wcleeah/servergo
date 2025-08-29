@@ -32,7 +32,7 @@ func test(rs string, keepAlive bool, p *ResWriteParam) error {
 	return nil
 }
 
-func TestWriteResHappy_Header_No_KeepAlive(t *testing.T) {
+func TestNoKeepAlive(t *testing.T) {
 	bodyStr := "Hello World"
 	body := []byte(bodyStr)
 	statusCode := "200"
@@ -51,7 +51,7 @@ func TestWriteResHappy_Header_No_KeepAlive(t *testing.T) {
 	}
 }
 
-func TestWriteResHappy_Header_KeepAlive(t *testing.T) {
+func TestKeepAlive(t *testing.T) {
 	bodyStr := "Hello World"
 	body := []byte(bodyStr)
 	statusCode := "200"
@@ -71,7 +71,7 @@ func TestWriteResHappy_Header_KeepAlive(t *testing.T) {
 }
 
 
-func TestWriteResHappy_Body(t *testing.T) {
+func TestWriteBody(t *testing.T) {
 	bodyStr := "Hello World"
 	body := []byte(bodyStr)
 	statusCode := "200"

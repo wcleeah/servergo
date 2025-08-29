@@ -74,4 +74,3 @@ var codeMsgMap = map[string]string{
 	"510": "Not Extended",                    // RFC2774 specific
 	"511": "Network Authentication Required", // Captive portals
 }
-var crlf = []byte("\r\n")

@@ -2,12 +2,34 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 
 	"lwc.com/servergo/logger"
 )
+
+var SUPPORTED_METHOD = []string{
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "OPTIONS",
+}
+
+var SUPPORTED_PROTOCOL_VERSION = []string{
+	"1.0",
+	"1.1",
+}
+
+const (
+	SUPPORTED_PROTOCOL = "HTTP"
+)
+
+var unsupportedMethod = errors.New("Unsupported Method")
+var unsupportedProtocol = errors.New("Unsupported Protocol")
+var unsupportedProtocolVersion = errors.New("Unsupported Protocol Version")
 
 type StartLine struct {
 	Method          string

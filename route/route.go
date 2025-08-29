@@ -17,6 +17,7 @@ func Route(req *Req, res *Res) {
 			StatusCode: "404",
 			Body:       []byte("Wrong url / method?"),
 		})
+		return
 	}
 	rf(req, res)
 }

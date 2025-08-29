@@ -2,89 +2,109 @@ package http
 
 import (
 	"context"
-	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestHappy(t *testing.T) {
+// correct value
+func TestStartLineCorrectValue(t *testing.T) {
 	startLine := "POST /123/123/123 HTTP/1.0"
 
 	ctx := context.Background()
-	sl, err := readStartLine(ctx, startLine)
-	if err != nil {
-		t.Fatalf("unexpected error %s", err.Error())
-	}
-
-	if sl.ProtocolVersion != "1.0" {
-		t.Fatalf("version invalid, expected %s, got %s", "1.0", sl.ProtocolVersion)
-	}
-
-	if sl.Method != "POST" {
-		t.Fatalf("method invalid, expected %s, got %s", "GET", sl.Method)
-	}
-
-	if sl.Url != "/123/123/123" {
-		t.Fatalf("url invalid, expected %s, got %s", "/123/123/123", sl.Url)
-	}
+	sl, err := readStartLine(ctx, []byte(startLine))
+	
+	assert.Nil(t, err)
+	assert.Equal(t, "1.0", sl.ProtocolVersion)
+	assert.Equal(t, "POST", sl.Method)
+	assert.Equal(t, "/123/123/123", sl.Url)
 }
 
-// Invalid structure 1
-func TestInSt1(t *testing.T) {
+func TestSupportedProtocolVersion(t *testing.T) {
+	startLine := "GET /123/123/123 HTTP/1.0"
+
+	ctx := context.Background()
+	sl, err := readStartLine(ctx, []byte(startLine))
+
+	assert.Nil(t, err)
+	assert.Equal(t, "1.0", sl.ProtocolVersion)
+	assert.Equal(t, "GET", sl.Method)
+	assert.Equal(t, "/123/123/123", sl.Url)
+
+	startLine = "GET /123/123/123 HTTP/1.1"
+
+	sl, err = readStartLine(ctx, []byte(startLine))
+
+	assert.Nil(t, err)
+	assert.Equal(t, "1.1", sl.ProtocolVersion)
+	assert.Equal(t, "GET", sl.Method)
+	assert.Equal(t, "/123/123/123", sl.Url)
+}
+
+// invalid structure, too many parts 
+func TestTooManyParts(t *testing.T) {
 	startLine := "GET /123/123/123 http/1.0 123123123123"
 
 	ctx := context.Background()
-	_, err := readStartLine(ctx, startLine)
-	if err == nil {
-		t.Fatalf("expected error %s", "invalid structure")
-	}
+	sl, err := readStartLine(ctx, []byte(startLine))
+
+	assert.Nil(t, sl)
+	assert.Error(t, err)
 }
 
-// Invalid structure 2
-func TestInSt2(t *testing.T) {
+// invalid structure, missing parts
+func TestMissingParts(t *testing.T) {
 	startLine := "GET /123/123/123"
 
 	ctx := context.Background()
-	_, err := readStartLine(ctx, startLine)
-	if err == nil {
-		t.Fatalf("expected error %s", "invalid structure")
-	}
+	sl, err := readStartLine(ctx, []byte(startLine))
+
+	assert.Nil(t, sl)
+	assert.Error(t, err)
 }
 
+// Path does not starts with /
+func TestMissingSlashPrefixForPath(t *testing.T) {
+	startLine := "GET 123/123/123 HTTP/1.1"
+
+	ctx := context.Background()
+	sl, err := readStartLine(ctx, []byte(startLine))
+
+	assert.Nil(t, sl)
+	assert.Error(t, err)
+}
+
+// unsupported method
 func TestUnsupportedMethod(t *testing.T) {
 	startLine := "ABC /123/123/123 HTTP/1.0"
 
 	ctx := context.Background()
-	_, err := readStartLine(ctx, startLine)
-	if err == nil {
-		t.Fatalf("expected error %s", "invalid structure")
-	}
-    if !errors.Is(err, unsupportedMethod) {
-        t.Fatalf("wrong error, expected: %s, got: %s", unsupportedMethod.Error(), err)
-    }
+	sl, err := readStartLine(ctx, []byte(startLine))
+
+	assert.Nil(t, sl)
+	assert.Error(t, err)
+	assert.Equal(t, unsupportedMethod, err)
 }
 
+// unsupported protocol
 func TestUnsupportedProtocol(t *testing.T) {
 	startLine := "GET /123/123/123 HAHAHAHAHAH/1.0"
 
 	ctx := context.Background()
-	_, err := readStartLine(ctx, startLine)
-	if err == nil {
-		t.Fatalf("expected error %s", "invalid structure")
-	}
-    if !errors.Is(err, unsupportedProtocol) {
-        t.Fatalf("wrong error, expected: %s, got: %s", unsupportedProtocol.Error(), err)
-    }
+	sl, err := readStartLine(ctx, []byte(startLine))
+
+	assert.Nil(t, sl)
+	assert.Error(t, err)
+	assert.Equal(t, unsupportedProtocol, err)
 }
 
 func TestUnsupportedProtocolVersion(t *testing.T) {
 	startLine := "GET /123/123/123 HTTP/3.0"
 
 	ctx := context.Background()
-	_, err := readStartLine(ctx, startLine)
-	if err == nil {
-		t.Fatalf("expected error %s", "invalid structure")
-	}
-    if !errors.Is(err, unsupportedProtocolVersion) {
-        t.Fatalf("wrong error, expected: %s, got: %s", unsupportedProtocolVersion.Error(), err)
-    }
+	sl, err := readStartLine(ctx, []byte(startLine))
+
+	assert.Nil(t, sl)
+	assert.Error(t, err)
+	assert.Equal(t, unsupportedProtocolVersion, err)
 }

@@ -2,87 +2,127 @@ package http
 
 import (
 	"context"
-	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // correct value
-func TestHappyCV(t *testing.T) {
+func TestHeaderCorrectValue(t *testing.T) {
 	hl := "Content-Length: 12345\r\n"
 
 	ctx := context.Background()
-	key, value, err := readHeader(ctx, hl)
-	if err != nil {
-		t.Fatalf("unexpected error %s", err.Error())
-	}
+	key, value, err := readHeader(ctx, []byte(hl))
 
-	if key != "Content-Length" {
-		t.Fatalf("key invalid, expected %s, got %s", "Content-Length", key)
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, "content-length", key)
+	assert.Equal(t, "12345", value)
 
-	if value != "12345" {
-		t.Fatalf("value invalid, expected %s, got %s", "12345", value)
-	}
+	hl = "custoM: abcde\r\n"
+
+	key, value, err = readHeader(ctx, []byte(hl))
+
+	assert.Nil(t, err)
+	assert.Equal(t, "custom", key)
+	assert.Equal(t, "abcde", value)
+}
+
+// OWC
+func TestOWC(t *testing.T) {
+	// many OWC
+	hl := "Content-Length:                             12345                              \r\n"
+
+	ctx := context.Background()
+	key, value, err := readHeader(ctx, []byte(hl))
+
+	assert.Nil(t, err)
+	assert.Equal(t, "content-length", key)
+	assert.Equal(t, "12345", value)
+
+	// no OWC
+	hl = "custom:abcde\r\n"
+
+	key, value, err = readHeader(ctx, []byte(hl))
+
+	assert.Nil(t, err)
+	assert.Equal(t, "custom", key)
+	assert.Equal(t, "abcde", value)
 }
 
 // EOF
-func TestHappyEOF(t *testing.T) {
+func TestHeaderEOF(t *testing.T) {
 	hl := "\r\n"
 
 	ctx := context.Background()
-	key, value, err := readHeader(ctx, hl)
-	if err != nil {
-		if !errors.Is(headerEnds, err) {
-			t.Fatalf("unexpected error %s", err.Error())
-		}
-	}
+	key, value, err := readHeader(ctx, []byte(hl))
 
-	if key != "" {
-		t.Fatalf("key invalid, expected %s, got %s", "Content-Length", key)
-	}
-
-	if value != "" {
-		t.Fatalf("value invalid, expected %s, got %s", "12345", value)
-	}
+	assert.Empty(t, key)
+	assert.Empty(t, value)
+	assert.Error(t, err)
+	assert.Equal(t, headerEnds, err)
 }
 
-// Host header with port
-func TestHappyHost(t *testing.T) {
+// Space before colon
+func TestSpaceBeforeColon(t *testing.T) {
+	hl := "Content-Length : 123\r\n"
+
+	ctx := context.Background()
+	key, value, err := readHeader(ctx, []byte(hl))
+
+	assert.Empty(t, key)
+	assert.Empty(t, value)
+	assert.Error(t, err)
+	assert.Equal(t, headerWhiteSpaceBeforeColon, err)
+}
+
+// Header value contains colon
+func TestColonValue(t *testing.T) {
 	hl := "Host: localhost:3000"
 
 	ctx := context.Background()
-	key, value, err := readHeader(ctx, hl)
-	if err != nil {
-		t.Fatalf("unexpected error %s", err.Error())
-	}
+	key, value, err := readHeader(ctx, []byte(hl))
 
-	if key != "Host" {
-		t.Fatalf("key invalid, expected %s, got %s", "Content-Length", key)
-	}
-
-	if value != "localhost:3000" {
-		t.Fatalf("value invalid, expected %s, got %s", "12345", value)
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, "host", key)
+	assert.Equal(t, "localhost:3000", value)
 }
 
 // incorrect structure, no colon
-func TestSadNoColon(t *testing.T) {
+func TestNoColon(t *testing.T) {
 	hl := "Content-Length 12345"
 
 	ctx := context.Background()
-	_, _, err := readHeader(ctx, hl)
-	if err == nil {
-		t.Fatalf("it should throw error")
-	}
+	key, value, err := readHeader(ctx, []byte(hl))
+
+	assert.Empty(t, key)
+	assert.Empty(t, value)
+	assert.Error(t, err)
+	assert.Equal(t, headerNoColon, err)
 }
 
-// incorrect structure, too many colon
-func TestSadTooManyColon(t *testing.T) {
-	hl := "Content-Length: 12345: "
+// incorrect structure, only colon
+func TestOnlyColon(t *testing.T) {
+	hl := ":"
 
 	ctx := context.Background()
-	_, _, err := readHeader(ctx, hl)
-	if err == nil {
-		t.Fatalf("it should throw error")
-	}
+	key, value, err := readHeader(ctx, []byte(hl))
+
+	assert.Empty(t, key)
+	assert.Empty(t, value)
+	assert.Error(t, err)
+	hl = "abc:"
+
+	key, value, err = readHeader(ctx, []byte(hl))
+
+	assert.Empty(t, key)
+	assert.Empty(t, value)
+	assert.Error(t, err)
+
+	hl = ":abc"
+
+	key, value, err = readHeader(ctx, []byte(hl))
+
+	assert.Empty(t, key)
+	assert.Empty(t, value)
+	assert.Error(t, err)
 }

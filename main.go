@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 
 	"github.com/google/uuid"
@@ -37,12 +38,13 @@ func main() {
     route.AddRoute("POST /user", func(req *route.Req, res *route.Res) {
 
 		l := logger.Get(req.Ctx())
-		body, err := req.Body()
+		body, err := io.ReadAll(req.Body())
 		if err != nil {
 			res.Write(&route.ResWriteParam{
 				StatusCode: "400",
 				Body: []byte("nobody nobody but you"),
 			})
+			return
 		}
 
 		l.Info("Body", "Body", string(body))
@@ -61,8 +63,8 @@ func main() {
 			fmt.Printf("Error when accepting connection: %s", err.Error())
 		}
 		ctx := context.WithValue(timeoutCtx, logger.TRACE_ID_KEY, uuid.NewString())
-		handler := http.NewConnHandler()
+		handler := http.NewConnHandler(ctx)
 
-		go handler.Handle(ctx, conn)
+		go handler.Handle(conn)
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"context"
 	"io"
 	"strconv"
+
+	"lwc.com/servergo/common"
 )
 
 type Res struct {
@@ -47,7 +49,6 @@ func (r *Res) Write(param *ResWriteParam) {
 	r.writeStartLine(param)
 	r.writeHeader(param)
 	r.w.Write(param.Body)
-	r.w.Write(crlf)
 
 	r.conn.Write(r.w.Bytes())
 }
@@ -60,7 +61,7 @@ func (r *Res) writeStartLine(param *ResWriteParam) {
 	r.w.WriteString(param.StatusCode)
 	r.w.Write(emptySpace)
 	r.w.WriteString(codeMsgMap[param.StatusCode])
-	r.w.Write(crlf)
+	r.w.Write(common.CRLF_BYTES)
 }
 
 func (r *Res) writeHeader(param *ResWriteParam) {
@@ -70,19 +71,19 @@ func (r *Res) writeHeader(param *ResWriteParam) {
 		r.w.Write(colon)
 		r.w.Write(emptySpace)
 		r.w.WriteString(v)
-		r.w.Write(crlf)
+		r.w.Write(common.CRLF_BYTES)
 	}
 	if _, ok := ahs["Content-Type"]; !ok {
 		r.w.WriteString("Content-Type: text/plain")
-		r.w.Write(crlf)
+		r.w.Write(common.CRLF_BYTES)
 	}
 
     if r.keepAlive {
         r.w.WriteString("Connection: keep-alive")
-        r.w.Write(crlf)
+        r.w.Write(common.CRLF_BYTES)
     } else {
         r.w.WriteString("Connection: close")
-        r.w.Write(crlf)
+        r.w.Write(common.CRLF_BYTES)
 	}
 
 	contentLength := len(param.Body)
@@ -91,7 +92,7 @@ func (r *Res) writeHeader(param *ResWriteParam) {
 		r.w.Write(colon)
 		r.w.Write(emptySpace)
 		r.w.WriteString(strconv.Itoa(contentLength))
-		r.w.Write(crlf)
+		r.w.Write(common.CRLF_BYTES)
 	}
-	r.w.Write(crlf)
+	r.w.Write(common.CRLF_BYTES)
 }

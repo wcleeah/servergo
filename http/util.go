@@ -1,7 +1,11 @@
 package http
 
-import "strings"
+import (
+	"strings"
+
+	"lwc.com/servergo/common"
+)
 
 func trimCRLF(s string) string {
-	return strings.Trim(s, "\r\n")
+	return strings.Trim(s, common.CRLF)
 }
