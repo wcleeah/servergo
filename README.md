@@ -1,11 +1,9 @@
 # ServerGo
-A experimental server so that i can understand how a http server works, it starts a tcp server, and some hand craft http parsing. 
+A experimental server so that i can understand how a http server works, it starts a tcp server, and a hand crafted http server. 
 It is absolutely not for production, it is only for me to try building a http server in go.
 
 ## Product
 - A HTTP server from scratch (TCP server -> response)
-- CORS
-- based on region and mode return a restaurant name
 
 ## TODO
 - [x] parse body
@@ -13,16 +11,15 @@ It is absolutely not for production, it is only for me to try building a http se
 - [x] assert / error handling
 - [x] add route and see if the whole thing works 
 - [x] some more unit testing
-- [ ] 1.1 support
-  - [ ] Connection: Keep-Alive
-  - [ ] Mandatory Host header
-  - [ ] Chunked Transfer Encoding
-- [ ] 2 support
-- [ ] CORS support
-- [ ] load test
-- [ ] add the route i need to use lol
+- [x] 1.1 support
+  - [x] Connection: Keep-Alive
 
 ## Future
+- [ ] 1.1 support
+  - [ ] Mandatory Host header
+  - [ ] Chunked Transfer Encoding
+- [ ] load testing
 - [ ] full compatible with the specification
-- [ ] streaming? (but http/2 already kind of does that)
+- [ ] http 2
 - [ ] websocket
+- [ ] JSON parser
