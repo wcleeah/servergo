@@ -1,0 +1,11 @@
+- It is quite hard to design a strategy to handle the request and response
+  - at last i just follow the go standard library style
+- The design comes very natuarally, it kinda looks like the go std lib http mux now
+- I learn a lot about bytes and stream processing, i think
+   - i build a complete connection (as the stream) infinite reader
+   - i learnt, at the very last moment, io.EOF usage, probably should be a criteria for a io.Reader implementation
+   - i used the returned n from a .Read for the first time (no cap)
+   - i learn that bytes handling is not scary at all, its still a bunch of data section, as long as we know the size it is easy
+- I get much more familiar with go, and testing in go
+- I learn how to navigate and read go’s source code, it is not as intimidating as i thought
+- I learn all the basics of how a HTTP 1.1 protocol works
