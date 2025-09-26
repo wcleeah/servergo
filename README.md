@@ -5,6 +5,10 @@ It is absolutely not for production, it is only for me to try building a http se
 ## Product
 - A HTTP server from scratch (TCP server -> response)
 
+## Goal
+- Learn how HTTP works
+- Get more familiar with go and go testing suite
+
 ## TODO
 - [x] parse body
 - [x] unit test for route.Req and route.Res 
