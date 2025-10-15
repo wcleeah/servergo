@@ -6,8 +6,7 @@ import (
 	"net"
 
 	"lwc.com/servergo/internal/logger"
-	"lwc.com/servergo/internal/route"
-	"lwc.com/servergo/internal/server"
+	"lwc.com/servergo/pkg/server"
 )
 
 func main() {
@@ -24,8 +23,8 @@ func main() {
 	defer listener.Close()
 	l.Info("TCP listening on 3000")
 
-	route.AddRoute("GET /health", func(req *route.Req, res *route.Res) {
-		res.Write(&route.ResWriteParam{
+	server.AddRoute("GET /health", func(req *server.Req, res *server.Res) {
+		res.Write(&server.ResWriteParam{
 			StatusCode: "200",
 			Ahs: map[string]string{
 				"Custom-Header": "hello",
@@ -34,12 +33,12 @@ func main() {
 		})
 	})
 
-	route.AddRoute("POST /user", func(req *route.Req, res *route.Res) {
+	server.AddRoute("POST /user", func(req *server.Req, res *server.Res) {
 
 		l := logger.Get(req.Ctx())
 		body, err := io.ReadAll(req.Body())
 		if err != nil {
-			res.Write(&route.ResWriteParam{
+			res.Write(&server.ResWriteParam{
 				StatusCode: "400",
 				Body:       []byte("nobody nobody but you"),
 			})
@@ -47,7 +46,7 @@ func main() {
 		}
 
 		l.Info("Body", "Body", string(body))
-		res.Write(&route.ResWriteParam{
+		res.Write(&server.ResWriteParam{
 			StatusCode: "200",
 			Ahs: map[string]string{
 				"Custom-Header": "yoooooooooooo",
@@ -56,7 +55,7 @@ func main() {
 		})
 	})
 
-	server := server.NewTCPServer(listener)
+	server := server.NewHTTPServer(listener)
 
 	server.Start(ctx)
 }

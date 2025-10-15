@@ -1,28 +1,38 @@
-package route
+package http
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"sync"
 	"unicode/utf8"
 )
 
-type bodyReader struct {
+var BodyMalformed = errors.New("Body malformed")
+
+type Body struct {
 	mu            sync.Mutex
 	bufioReader   *bufio.Reader
 	contentLength int
 	readN         int
 }
 
-func (r *bodyReader) Read(p []byte) (int, error) {
+func NewBody(bufioReader *bufio.Reader, contentLength int) *Body {
+	return &Body{
+		bufioReader: bufioReader,
+		contentLength: contentLength,
+	}
+}
+
+func (r *Body) Read(p []byte) (int, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if r.contentLength == 0 || r.contentLength - r.readN <= 0 {
-		return 0, io.EOF 
+	if r.contentLength == 0 || r.contentLength-r.readN <= 0 {
+		return 0, io.EOF
 	}
 
-	targetN := min(r.contentLength - r.readN, len(p))
+	targetN := min(r.contentLength-r.readN, len(p))
 
 	lr := io.LimitReader(r.bufioReader, int64(targetN))
 	totalN := 0
@@ -61,7 +71,7 @@ func (r *bodyReader) Read(p []byte) (int, error) {
 	return totalN, nil
 }
 
-func (r *bodyReader) IsBodyRead() bool {
+func (r *Body) IsBodyRead() bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

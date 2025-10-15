@@ -1,4 +1,4 @@
-package route
+package http 
 
 import (
 	"bufio"
@@ -28,10 +28,7 @@ func TestReadBody(t *testing.T) {
 	strByteLen := len(str)
 
 	bufioReader := bufio.NewReader(strings.NewReader(str))
-	bodyReader := &bodyReader{
-		bufioReader: bufioReader,
-		contentLength: strByteLen,
-	}
+	bodyReader := NewBody(bufioReader, strByteLen)
 
 	body, err := io.ReadAll(bodyReader)
 
@@ -44,12 +41,9 @@ func TestReadBody_BodyInvalidUTF8(t *testing.T) {
 	invalidBytes := []byte{0xC0, 0x80}
 
 	bufioReader := bufio.NewReader(bytes.NewReader(invalidBytes))
-	bytesLen := len(invalidBytes)
+	strByteLen := len(invalidBytes)
 
-	bodyReader := &bodyReader{
-		bufioReader: bufioReader,
-		contentLength: bytesLen,
-	}
+	bodyReader := NewBody(bufioReader, strByteLen)
 
 	_, err := io.ReadAll(bodyReader)
 
@@ -60,11 +54,9 @@ func TestReadBody_BodyInvalidUTF8(t *testing.T) {
 func TestReadBody_BodyEmpty(t *testing.T) {
 	emptyBytes := []byte{}
 	bufioReader := bufio.NewReader(bytes.NewReader(emptyBytes))
+	strByteLen := 0
 
-	bodyReader := &bodyReader{
-		bufioReader: bufioReader,
-		contentLength: 0,
-	}
+	bodyReader := NewBody(bufioReader, strByteLen)
 
 	body, err := io.ReadAll(bodyReader)
 

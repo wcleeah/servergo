@@ -11,7 +11,7 @@ It is absolutely not for production, it is only for me to try building a http se
 
 ## TODO
 - [x] parse body
-- [x] unit test for route.Req and route.Res 
+- [x] unit test for Req and Res 
 - [x] assert / error handling
 - [x] add route and see if the whole thing works 
 - [x] some more unit testing

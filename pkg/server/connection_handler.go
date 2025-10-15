@@ -1,4 +1,4 @@
-package http
+package server
 
 import (
 	"bufio"
@@ -9,34 +9,28 @@ import (
 	"strconv"
 	"strings"
 
+	"lwc.com/servergo/internal/http"
 	"lwc.com/servergo/internal/logger"
-	"lwc.com/servergo/internal/route"
 )
 
-type State string
-
-const (
-	bytesLimit int = 3
-)
-
-type ConnHandler struct {
+type connHandler struct {
 	conn      io.ReadWriteCloser
 	keepAlive bool
-	req       *route.Req
-	res       *route.Res
+	req       *Req
+	res       *Res
 	bufReader *bufio.Reader
 	ctx       context.Context
 }
 
-func NewConnHandler(ctx context.Context) *ConnHandler {
-	return &ConnHandler{
+func newConnHandler(ctx context.Context) *connHandler {
+	return &connHandler{
 		keepAlive: true,
 		ctx:       ctx,
 	}
 }
 
 // TODO: timeout case
-func (ch *ConnHandler) Handle(conn io.ReadWriteCloser) {
+func (ch *connHandler) Handle(conn io.ReadWriteCloser) {
 	l := logger.Get(ch.ctx)
 	l.Info("New Connection")
 	ch.conn = conn
@@ -46,7 +40,6 @@ func (ch *ConnHandler) Handle(conn io.ReadWriteCloser) {
 	var err error
 	for ch.keepAlive {
 		ch.req = nil
-		ch.res = route.NewRes(ch.ctx, SUPPORTED_PROTOCOL, SUPPORTED_PROTOCOL_VERSION[0], false, conn)
 		err = ch.handle()
 		if err != nil {
 			l.Error("Error, breaking")
@@ -61,17 +54,21 @@ func (ch *ConnHandler) Handle(conn io.ReadWriteCloser) {
 		return
 	}
 
-	if errors.Is(err, unsupportedMethod) {
+	if ch.res == nil {
+		ch.res = newRes(ch.ctx, http.SUPPORTED_PROTOCOL, http.DEFAULT_PROTOCOL_VERSION, false, ch.conn)
+	}
+
+	if errors.Is(err, http.UnsupportedMethod) {
 		l.Error("unsupportedMethod")
-		ch.res.Write(&route.ResWriteParam{
+		ch.res.Write(&ResWriteParam{
 			StatusCode: "405",
 		})
 		return
 	}
 
-	if errors.Is(err, unsupportedProtocolVersion) {
+	if errors.Is(err, http.UnsupportedProtocolVersion) {
 		l.Error("unsupportedProtocolVersion")
-		ch.res.Write(&route.ResWriteParam{
+		ch.res.Write(&ResWriteParam{
 			StatusCode: "505",
 		})
 		return
@@ -80,7 +77,7 @@ func (ch *ConnHandler) Handle(conn io.ReadWriteCloser) {
 	if err != nil {
 
 		l.Error("other errors", "error", err.Error())
-		ch.res.Write(&route.ResWriteParam{
+		ch.res.Write(&ResWriteParam{
 			StatusCode: "400",
 			Body:       []byte(err.Error()),
 		})
@@ -90,11 +87,10 @@ func (ch *ConnHandler) Handle(conn io.ReadWriteCloser) {
 	l.Info("Connection Closed")
 }
 
-func (ch *ConnHandler) handle() error {
+func (ch *connHandler) handle() error {
 	l := logger.Get(ch.ctx)
 
 	startLineBytes := make([]byte, 0)
-	var startLine *StartLine
 
 	headerBytes := make([]byte, 0)
 	ahs := make(map[string]string, 0)
@@ -124,13 +120,12 @@ func (ch *ConnHandler) handle() error {
 		if isPrefix {
 			continue
 		}
-
-		startLine, err = readStartLine(ch.ctx, startLineBytes)
-		if err != nil {
-			return err
-		}
 		break
+	}
 
+	method, url, protocolVersion, protocol, err := http.ReadStartLine(ch.ctx, startLineBytes)
+	if err != nil {
+		return err
 	}
 
 	for {
@@ -147,12 +142,12 @@ func (ch *ConnHandler) handle() error {
 			continue
 		}
 
-		key, value, err := readHeader(ch.ctx, headerBytes)
+		key, value, noMoreHeader, err := http.ReadHeader(ch.ctx, headerBytes)
 		if err != nil {
-			if errors.Is(err, headerEnds) {
-				break
-			}
 			return err
+		}
+		if noMoreHeader {
+			break
 		}
 
 		if v, ok := ahs[key]; ok {
@@ -179,11 +174,12 @@ func (ch *ConnHandler) handle() error {
 		}
 	}
 
-	l.Info("before routing info", "startLine", fmt.Sprintf("%+v", startLine), "headers", fmt.Sprintf("%+v", ahs), "keep alive", ch.keepAlive)
+	l.Info("before routing info", "startLine", fmt.Sprintf("%s %s, %s/%s", method, url, protocol, protocolVersion), "headers", fmt.Sprintf("%+v", ahs), "keep alive", ch.keepAlive)
 
-	ch.req = route.NewReq(ch.ctx, startLine.Method, startLine.Url, startLine.Protocol, startLine.ProtocolVersion, ahs, ch.bufReader)
-	ch.res = route.NewRes(ch.ctx, startLine.Protocol, startLine.ProtocolVersion, ch.keepAlive, ch.conn)
-	route.Route(ch.req, ch.res)
+	ch.req = newReq(ch.ctx, method, url, protocol, protocolVersion, ahs, ch.bufReader)
+	ch.res = newRes(ch.ctx, protocol, protocolVersion, ch.keepAlive, ch.conn)
+
+	route(ch.req, ch.res)
 
 	// since the next request will be using the same connection
 	// new bytes from the new request cannot be read unless the prev body bytes is read
@@ -193,7 +189,10 @@ func (ch *ConnHandler) handle() error {
 		// if the request is processed, but reading body throws error
 		// will just let the error floats and closing the connection
 		// not the server responsibility to handle timing difference between body reading and handler process imo
-		return ch.req.CleanUpBodyBytes()
+		_, err := io.ReadAll(ch.req.Body())
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -1,4 +1,4 @@
-package route
+package server 
 
 import (
 	"bufio"
@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"lwc.com/servergo/internal/http"
 )
 
 type Req struct {
@@ -17,10 +19,10 @@ type Req struct {
 	ahs             map[string]string
 	ctx             context.Context
 	mu              sync.Mutex
-	bodyReader      *bodyReader
+	body            *http.Body
 }
 
-func NewReq(ctx context.Context, method, url, protocol, protocolVersion string, ahs map[string]string, connReader *bufio.Reader) *Req {
+func newReq(ctx context.Context, method, url, protocol, protocolVersion string, ahs map[string]string, connReader *bufio.Reader) *Req {
 	req := &Req{
 		Method:          method,
 		Url:             url,
@@ -28,51 +30,36 @@ func NewReq(ctx context.Context, method, url, protocol, protocolVersion string, 
 		ProtocolVersion: protocolVersion,
 		ahs:             ahs,
 		ctx:             ctx,
-		bodyReader: &bodyReader{
-			bufioReader: connReader,
-		},
 	}
 
-	// here we assumed the content length header has been checked in connectionHandler
-	clStr := req.GetHeader("Content-Length")
+	// if content length is not provided, treat it as no body and pass zero-value
+	clStr, ok := req.GetHeader("Content-Length")
 	var clInt int
-	if clStr != "" {
+	if ok {
 		clInt, _ = strconv.Atoi(clStr)
 	}
 
-	req.bodyReader.contentLength = clInt
+	req.body = http.NewBody(connReader, clInt)
 	return req
 }
 
 // we will assume the body length must be the same with content Content-Length header
 func (r *Req) Body() io.Reader {
-	return r.bodyReader
+	return r.body
 }
 
-func (r *Req) GetHeader(key string) string {
+func (r *Req) GetHeader(key string) (string, bool) {
 	h, ok := r.ahs[strings.ToLower(key)]
-	if ok {
-		return h
-	}
-	return ""
+	return h, ok
 }
 
 func (r *Req) Ctx() context.Context {
 	if r.ctx == nil {
-		return context.Background()
+		r.ctx = context.Background()
 	}
 	return r.ctx
 }
 
 func (r *Req) IsBodyRead() bool {
-	return r.bodyReader.IsBodyRead()
-}
-
-func (r *Req) CleanUpBodyBytes() error {
-	if r.bodyReader.IsBodyRead() {
-		return nil
-	}
-
-	_, err := io.ReadAll(r.Body())
-	return err
+	return r.body.IsBodyRead()
 }

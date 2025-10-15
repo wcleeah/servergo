@@ -1,4 +1,4 @@
-package route
+package server 
 
 import (
 	"context"
@@ -12,7 +12,7 @@ func test(rs string, keepAlive bool, p *ResWriteParam) error {
 	r, w := io.Pipe()
 	defer r.Close()
 	defer w.Close()
-	res := NewRes(context.Background(), "HTTP", "1.0", keepAlive, w)
+	res := newRes(context.Background(), "HTTP", "1.0", keepAlive, w)
 	go func() {
 		defer w.Close()
 		res.Write(p)
@@ -51,7 +51,7 @@ func TestNoKeepAlive(t *testing.T) {
 	}
 }
 
-func TestKeepAlive(t *testing.T) {
+func TestKeepAliveHeader(t *testing.T) {
 	bodyStr := "Hello World"
 	body := []byte(bodyStr)
 	statusCode := "200"

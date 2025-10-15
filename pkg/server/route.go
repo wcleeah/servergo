@@ -1,14 +1,15 @@
-package route
+package server 
 
 import (
-	"errors"
 	"fmt"
 )
 
-// Add mutex...?
-var routes = map[string]func(req *Req, res *Res){}
+type RouteFunc = func(req *Req, res *Res)
 
-func Route(req *Req, res *Res) {
+// Add mutex...?
+var routes = map[string]RouteFunc{}
+
+func route(req *Req, res *Res) {
 	// assert method and url
 	mPlusUrl := req.Method + " " + req.Url
 	rf, ok := routes[mPlusUrl]
@@ -22,11 +23,11 @@ func Route(req *Req, res *Res) {
 	rf(req, res)
 }
 
-func AddRoute(key string, f func(req *Req, res *Res)) error {
+func AddRoute(key string, f RouteFunc) error {
 	// assert key format
 	_, ok := routes[key]
 	if ok {
-		return errors.New(fmt.Sprintf("Route duplicated for key: %s", key))
+		return fmt.Errorf("Route duplicated for key: %s", key)
 	}
 	routes[key] = f
 	// add options version as well

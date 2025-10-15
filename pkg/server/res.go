@@ -1,4 +1,4 @@
-package route
+package server 
 
 import (
 	"bytes"
@@ -33,7 +33,7 @@ var (
 	slash      = []byte("/")
 )
 
-func NewRes(ctx context.Context, protocol, protocolVersion string, keepAlive bool, conn io.WriteCloser) *Res {
+func newRes(ctx context.Context, protocol, protocolVersion string, keepAlive bool, conn io.WriteCloser) *Res {
 	var w bytes.Buffer
 	return &Res{
 		Protocol:        protocol,

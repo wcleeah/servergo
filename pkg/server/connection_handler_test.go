@@ -1,4 +1,4 @@
-package http
+package server
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"lwc.com/servergo/internal/logger"
-	"lwc.com/servergo/internal/route"
 )
 
 type VerySlowConn struct {
@@ -99,7 +98,7 @@ func TestSmallPacketsHandling(t *testing.T) {
 	}
 
 	ctx := context.WithValue(context.Background(), logger.TRACE_ID_KEY, uuid.NewString())
-	handler := NewConnHandler(ctx)
+	handler := newConnHandler(ctx)
 
 	// Connection: Close should terminate the inf loop
 	handler.Handle(rwc)
@@ -110,9 +109,15 @@ func TestSmallPacketsHandling(t *testing.T) {
 	assert.Equal(t, "/bro", handler.req.Url)
 	assert.Equal(t, "HTTP", handler.req.Protocol)
 	assert.Equal(t, "1.1", handler.req.ProtocolVersion)
-	assert.Equal(t, "hahahaha", handler.req.GetHeader("Noway"))
-	assert.Equal(t, "Close", handler.req.GetHeader("Connection"))
 	assert.True(t, conn.Closed)
+
+	h, ok := handler.req.GetHeader("Noway")
+	assert.Equal(t, "hahahaha", h)
+	assert.True(t, ok)
+
+	h, ok = handler.req.GetHeader("Connection")
+	assert.Equal(t, "Close", h)
+	assert.True(t, ok)
 }
 
 // connection reuse and connection close
@@ -131,20 +136,20 @@ func TestKeepAlive(t *testing.T) {
 
 	traceId := uuid.NewString()
 	ctx := context.WithValue(context.Background(), logger.TRACE_ID_KEY, traceId)
-	handler := NewConnHandler(ctx)
+	handler := newConnHandler(ctx)
 
-	route.AddRoute("GET /bro", func(req *route.Req, res *route.Res) {
+	AddRoute("GET /bro", func(req *Req, res *Res) {
 		assert.True(t, handler.keepAlive)
 		assert.Equal(t, traceId, req.Ctx().Value(logger.TRACE_ID_KEY))
-		res.Write(&route.ResWriteParam{
+		res.Write(&ResWriteParam{
 			StatusCode: "200",
 		})
 	})
 
-	route.AddRoute("GET /closer", func(req *route.Req, res *route.Res) {
+	AddRoute("GET /closer", func(req *Req, res *Res) {
 		assert.False(t, handler.keepAlive)
 		assert.Equal(t, traceId, req.Ctx().Value(logger.TRACE_ID_KEY))
-		res.Write(&route.ResWriteParam{
+		res.Write(&ResWriteParam{
 			StatusCode: "200",
 		})
 	})
@@ -175,19 +180,19 @@ func TestBodyRead(t *testing.T) {
 
 	traceId := uuid.NewString()
 	ctx := context.WithValue(context.Background(), logger.TRACE_ID_KEY, traceId)
-	handler := NewConnHandler(ctx)
+	handler := newConnHandler(ctx)
 
-	route.AddRoute("POST /readBody", func(req *route.Req, res *route.Res) {
+	AddRoute("POST /readBody", func(req *Req, res *Res) {
 		_, err := io.ReadAll(req.Body())
 		assert.NoError(t, err)
 
-		res.Write(&route.ResWriteParam{
+		res.Write(&ResWriteParam{
 			StatusCode: "200",
 		})
 	})
 
-	route.AddRoute("POST /noReadBody", func(req *route.Req, res *route.Res) {
-		res.Write(&route.ResWriteParam{
+	AddRoute("POST /noReadBody", func(req *Req, res *Res) {
+		res.Write(&ResWriteParam{
 			StatusCode: "200",
 		})
 	})
@@ -214,7 +219,7 @@ func TestEOF(t *testing.T) {
 
 	traceId := uuid.NewString()
 	ctx := context.WithValue(context.Background(), logger.TRACE_ID_KEY, traceId)
-	handler := NewConnHandler(ctx)
+	handler := newConnHandler(ctx)
 
 	handler.Handle(rwc)
 

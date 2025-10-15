@@ -1,4 +1,4 @@
-package route
+package server 
 
 var codeMsgMap = map[string]string{
 	// 1xx Informational Responses

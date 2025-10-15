@@ -10,35 +10,29 @@ import (
 	"lwc.com/servergo/internal/logger"
 )
 
-var SUPPORTED_METHOD = []string{
-    "GET",
-    "POST",
-    "PUT",
-    "DELETE",
-    "OPTIONS",
+var supportedMethods = []string{
+	"GET",
+	"POST",
+	"PUT",
+	"DELETE",
+	"OPTIONS",
 }
 
-var SUPPORTED_PROTOCOL_VERSION = []string{
+var supportedProtocolVersions = []string{
 	"1.0",
 	"1.1",
 }
 
 const (
-	SUPPORTED_PROTOCOL = "HTTP"
+	SUPPORTED_PROTOCOL       = "HTTP"
+	DEFAULT_PROTOCOL_VERSION = "1.1"
 )
 
-var unsupportedMethod = errors.New("Unsupported Method")
-var unsupportedProtocol = errors.New("Unsupported Protocol")
-var unsupportedProtocolVersion = errors.New("Unsupported Protocol Version")
+var UnsupportedMethod = errors.New("Unsupported Method")
+var UnsupportedProtocol = errors.New("Unsupported Protocol")
+var UnsupportedProtocolVersion = errors.New("Unsupported Protocol Version")
 
-type StartLine struct {
-	Method          string
-	Url             string
-	ProtocolVersion string
-	Protocol        string
-}
-
-func readStartLine(ctx context.Context, slb []byte) (*StartLine, error) {
+func ReadStartLine(ctx context.Context, slb []byte) (string, string, string, string, error) {
 	l := logger.Get(ctx)
 	sls := trimCRLF(string(slb))
 	l.Info(fmt.Sprintf("Start Line: %s", sls))
@@ -47,39 +41,34 @@ func readStartLine(ctx context.Context, slb []byte) (*StartLine, error) {
 	slsSplitted := strings.Split(sls, " ")
 
 	if len(slsSplitted) != 3 {
-		return nil, fmt.Errorf("Start Line: malformed structure, there are %d arguments", len(slsSplitted))
+		return "", "", "", "", fmt.Errorf("Start Line: malformed structure, there are %d arguments", len(slsSplitted))
 	}
 	method := slsSplitted[0]
 	url := slsSplitted[1]
 	httpVersion := slsSplitted[2]
 
-    if !slices.Contains(SUPPORTED_METHOD, method) {
-        return nil, unsupportedMethod
-    }
+	if !slices.Contains(supportedMethods, method) {
+		return "", "", "", "", UnsupportedMethod
+	}
 
 	if !strings.HasPrefix(url, "/") {
-		return nil, fmt.Errorf("Start Line: malformed url -> %s", url)
+		return "", "", "", "", fmt.Errorf("Start Line: malformed url -> %s", url)
 	}
 
 	hvSplitted := strings.Split(httpVersion, "/")
 	if len(hvSplitted) != 2 {
-		return nil, fmt.Errorf("Start Line: malformed protocol and version -> %s", httpVersion)
+		return "", "", "", "", fmt.Errorf("Start Line: malformed protocol and version -> %s", httpVersion)
 	}
 
 	protocol := hvSplitted[0]
 	version := hvSplitted[1]
 	if protocol != SUPPORTED_PROTOCOL {
-		return nil, unsupportedProtocol
+		return "", "", "", "", UnsupportedProtocol
 	}
 
-	if !slices.Contains(SUPPORTED_PROTOCOL_VERSION, version) {
-		return nil, unsupportedProtocolVersion
+	if !slices.Contains(supportedProtocolVersions, version) {
+		return "", "", "", "", UnsupportedProtocolVersion
 	}
 
-	return &StartLine{
-		Method:          method,
-		Url:             url,
-		ProtocolVersion: version,
-		Protocol:        protocol,
-	}, nil
+	return method, url, version, protocol, nil
 }
