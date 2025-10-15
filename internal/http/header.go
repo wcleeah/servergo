@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"lwc.com/servergo/logger"
+	"lwc.com/servergo/internal/logger"
 )
 
 var (

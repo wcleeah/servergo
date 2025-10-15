@@ -3,7 +3,7 @@ package http
 import (
 	"strings"
 
-	"lwc.com/servergo/common"
+	"lwc.com/servergo/internal/common"
 )
 
 func trimCRLF(s string) string {

@@ -7,9 +7,9 @@ import (
 	"net"
 
 	"github.com/google/uuid"
-	"lwc.com/servergo/http"
-	"lwc.com/servergo/logger"
-	"lwc.com/servergo/route"
+	"lwc.com/servergo/internal/http"
+	"lwc.com/servergo/internal/logger"
+	"lwc.com/servergo/internal/route"
 )
 
 func main() {

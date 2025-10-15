@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"lwc.com/servergo/logger"
+	"lwc.com/servergo/internal/logger"
 )
 
 var SUPPORTED_METHOD = []string{

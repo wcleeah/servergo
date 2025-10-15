@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"lwc.com/servergo/logger"
-	"lwc.com/servergo/route"
+	"lwc.com/servergo/internal/logger"
+	"lwc.com/servergo/internal/route"
 )
 
 type VerySlowConn struct {

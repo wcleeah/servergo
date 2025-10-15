@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"lwc.com/servergo/logger"
-	"lwc.com/servergo/route"
+	"lwc.com/servergo/internal/logger"
+	"lwc.com/servergo/internal/route"
 )
 
 type State string

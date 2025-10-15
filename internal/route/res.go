@@ -6,7 +6,7 @@ import (
 	"io"
 	"strconv"
 
-	"lwc.com/servergo/common"
+	"lwc.com/servergo/internal/common"
 )
 
 type Res struct {
