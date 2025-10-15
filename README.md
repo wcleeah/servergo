@@ -17,12 +17,13 @@ It is absolutely not for production, it is only for me to try building a http se
 - [x] some more unit testing
 - [x] 1.1 support
   - [x] Connection: Keep-Alive
+- [ ] DST
+- [ ] Assert over all the places
 
 ## Future
 - [ ] 1.1 support
   - [ ] Mandatory Host header
   - [ ] Chunked Transfer Encoding
-- [ ] load testing
 - [ ] full compatible with the specification
 - [ ] http 2
 - [ ] websocket
